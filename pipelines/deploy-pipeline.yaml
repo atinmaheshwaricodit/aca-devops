@@ -9,7 +9,7 @@ resources:
     # Name of the pipeline resource inside this workflow. Used to reference the pipeline resources later on (e.g. download artifacts).
   - pipeline: package_build
     # Name of the pipeline in Azure Pipelines
-    source: 'aca-devops-CI' 
+    source: 'aca-devops-CI'
     trigger: true
 
 parameters:
@@ -59,7 +59,7 @@ stages:
         deploy:
           steps:
           - download: 'package_build'
-            artifact: 'artifact'
+            artifact: 'arm'
             displayName: Download Artifact
           - template: ./templates/deploy-arm-template.yaml
             parameters:
@@ -68,28 +68,14 @@ stages:
               resourceGroupName: $(Azure.ResourceGroup.Name)
               location: $(Azure.ResourceGroup.Location)
               loggingLevel: ${{ parameters.loggingLevel }}
-
-#- stage: deploy_production
-#  displayName: 'Deploy to Production'
-#  dependsOn: deploy_acceptance
-#  variables:
-#    - template: ./variables/environments/environment-prd.yaml
-#    - template: ./variables/apps/app-prd.yaml
-#  jobs:
-#  - deployment: deploy_to_prd
-#    displayName: 'Deploy to PRD'
-#    environment: DevOps Skeleton (Production)
-#    strategy:
-#      runOnce:
-#        deploy:
-#          steps:
-#          - download: 'package_build'
-#            artifact: 'artifact'
-#            displayName: Download Artifact
-#          - template: ./templates/deploy-arm-template.yaml
-#            parameters:
-#              azureResourceManagerConnection: $(Azure.ServiceConnection.Name)
-#              subscriptionId: $(Azure.Subscription.Id)
-#              resourceGroupName: $(Azure.ResourceGroup.Name)
-#              location: $(Azure.ResourceGroup.Location)
-#              loggingLevel: ${{ parameters.loggingLevel }}
+          - download: 'package_build'
+            artifact: 'app'
+            displayName: Download Artifact
+            # Deploy web app
+          - template: ./templates/deploy-web-app.yaml
+            parameters:
+              azureResourceManagerConnection: $(Azure.ServiceConnection.Name)
+              subscriptionId: $(Azure.Subscription.Id)
+              resourceGroupName: $(Azure.ResourceGroup.Name)
+              location: $(Azure.ResourceGroup.Location)
+              loggingLevel: ${{ parameters.loggingLevel }}

@@ -29,16 +29,14 @@ parameters:
   - Debug
 
 variables:
+- template: ./variables/apps/app-shared.yaml
 - name: vmImage
   value: 'ubuntu-latest'
 - name: buildConfiguration
   value: 'Release'
 - name: workingDirectory
   value: '$(System.DefaultWorkingDirectory)/src/Application'
-- name: solutionFile  
-  value: 'DevOps.App.sln'
-- name: appName
-  value: 'DevOps.App'
+
 
 pool:
   vmImage: $(vmImage)
@@ -67,39 +65,29 @@ stages:
         script: 'jsonlint-cli $(Pipeline.Workspace)/s/deploy/**.json'
     
     # Build your app  
-    - task: UseDotNet@2 
-      displayName: "Use .NET Core sdk"
+    - task: UseDotNet@2
       inputs:
-        version: 3.1.x
-        packageType: sdk 
-    - task: DotNetCoreCLI@2
-      displayName: 'Restore Dependencies'
-      inputs:
-        command: 'restore'
-        projects: '$(workingDirectory)/$(solutionFile)'
-    #- task: DotNetCoreCLI@2  
-    #  displayName: 'Test'  
-    #  inputs:
-    #    command: test
-    #    projects: '**/Test/*Tests/*.csproj'
-    #    arguments: '--configuration $(buildConfiguration)'
-    - task: DotNetCoreCLI@2
-      displayName: Publish
-      inputs:
-        command: 'publish'
-        projects: |
-          $(workingDirectory)/$(appName)/$(appName).csproj
-        arguments: --output $(System.DefaultWorkingDirectory)/publish_output --configuration $(buildConfiguration) -r linux-x64 
-    - task: ArchiveFiles@2
-      displayName: 'Archive files'
-      inputs:
-        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output'
-        includeRootFolder: false
-        archiveType: zip
-        archiveFile: $(Build.ArtifactStagingDirectory)/artifact/package/$(Build.BuildId).zip
-        replaceExistingArchive: true 
+        version: $(Api.DotNetVersion.App)
+    - script: dotnet build ./$(Api.AppName.App)/$(Api.AppName.App).csproj --configuration $(buildConfiguration)
+      displayName: Build
+      workingDirectory: $(workingDirectory)
 
-    # Publish
+    # Publish it as .NET 6 self contained application for linux runtime
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: publish
+        publishWebProjects: True
+        arguments: '--configuration $(buildConfiguration) --framework $(Api.DotNetFramework.App) --runtime $(Api.TargetRuntime.App) --self-contained --output $(Build.ArtifactStagingDirectory)/publish_output/app'
+        zipAfterPublish: True
+        workingDirectory: '$(workingDirectory)'
+        projects: |
+          $(workingDirectory)/$(Api.AppName.App)/$(Api.AppName.App).csproj
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/publish_output/app'
+        artifact: 'app'
+        publishLocation: 'pipeline'
     - task: CopyFiles@2
       displayName: Copy ARM templates
       inputs:
@@ -107,10 +95,11 @@ stages:
         Contents: |
           azure-infrastructure.json
           azure-infrastructure.parameters.json
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/artifact/arm'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/publish_output/arm'
     - task: PublishPipelineArtifact@1
       displayName: 'Publish artifact'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/artifact'
-        artifact: 'artifact'
+        targetPath: '$(Build.ArtifactStagingDirectory)/publish_output/arm'
+        artifact: 'arm'
         publishLocation: 'pipeline'
+    

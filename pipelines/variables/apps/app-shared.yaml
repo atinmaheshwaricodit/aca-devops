@@ -1,14 +1,24 @@
 variables:
+  - name: Your.Initials
+    value: dbo
   - name: Resource.Prefix
-    value: $(App.Environment.Code)-$(Region.ShortName)-lab
+    value: $(App.Environment.Code)-$(Region.ShortName)-$(Your.Initials)
   - name: Azure.ResourceGroup.Name
-    value: aca-devops
+    value: devops-training-$(Your.Initials)
   - name: Api.Name
     value: $(Resource.Prefix)-app
-  - name: Api.DotnetVersion
-    value: DOTNETCORE|3.1
-  - name: Api.SDK
-    value: 3.1.x
+  - name: Api.DotnetVersion.Infra
+    value: DOTNETCORE|6.0
+  - name: Api.DotnetVersion.App
+    value: 6.0.x
+  - name: Api.SolutionFile.App
+    value: 'DevOps.App.sln'
+  - name: Api.AppName.App
+    value: 'DevOps_App'
+  - name: Api.DotNetFramework.App
+    value: net6.0
+  - name: Api.TargetRuntime.App
+    value: linux-x64
   - name: Keyvault.Name
     value: codit-academy-vault
   - name: Storage.SkuName

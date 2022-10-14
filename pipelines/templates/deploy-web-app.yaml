@@ -1,0 +1,22 @@
+parameters:
+  azureResourceManagerConnection: ''
+  subscriptionId: ''
+  resourceGroupName: ''
+  artifactFolder: '$(Pipeline.Workspace)/package_build'
+  location: ''
+  loggingLevel: ''
+
+steps:
+- ${{ if eq(parameters.loggingLevel, 'Debug') }}:
+  - task: CmdLine@2
+    displayName: "[Debug] Output artifact structure"
+    inputs:
+      script: 'ls ${{parameters.artifactFolder}}'
+
+#Deploy app to the Azure App Service
+- task: AzureWebApp@1
+  inputs:
+    appType: webAppLinux
+    azureSubscription: $(Azure.ServiceConnection.Name) #this is the name of the SPN
+    appName: $(Api.Name) #App Service's unique name
+    package: $(Pipeline.Workspace)/**/*.zip
