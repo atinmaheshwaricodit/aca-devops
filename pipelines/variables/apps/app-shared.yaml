@@ -20,7 +20,7 @@ variables:
   - name: Api.TargetRuntime.App
     value: linux-x64
   - name: Keyvault.Name
-    value: codit-academy-vault
+    value: codit-academy
   - name: Storage.SkuName
     value: Standard_LRS
   - name: Keyvault.SkuName

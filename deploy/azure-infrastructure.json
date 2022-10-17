@@ -184,7 +184,7 @@
                     "properties": {
                       "VaultUri": "[concat('https://',variables('KeyVaultName'),'.vault.azure.net/')]",
                       "StorageAccount.TableName": "[parameters('StorageAccountTableName')]",
-                      "Encryption.Key": "@Microsoft.KeyVault(SecretUri=https://codit-academy-vault.vault.azure.net/secrets/EncryptionKey/)",
+                      "Encryption.Key": "@Microsoft.KeyVault(SecretUri=https://codit-academy.vault.azure.net/secrets/EncryptionKey/)",
                       "WEBSITE_DYNAMIC_CACHE": "0",
                       "WEBSITE_LOCAL_CACHE_OPTION": "Never",
                       "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "true"
