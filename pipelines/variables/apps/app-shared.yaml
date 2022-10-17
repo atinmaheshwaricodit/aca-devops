@@ -1,10 +1,11 @@
 variables:
   - name: Your.Initials
-    value: dbo
+    value: lab
   - name: Resource.Prefix
     value: $(App.Environment.Code)-$(Region.ShortName)-$(Your.Initials)
   - name: Azure.ResourceGroup.Name
-    value: devops-training-$(Your.Initials)
+    value: aca-devops
+#    value: devops-training-$(Your.Initials)
   - name: Api.Name
     value: $(Resource.Prefix)-app
   - name: Api.DotnetVersion.Infra
