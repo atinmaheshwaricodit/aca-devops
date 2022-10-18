@@ -243,6 +243,23 @@
                 "get"
               ]
             }
+          },
+          {
+            "tenantId": "7517bc42-bcf8-4916-a677-b5753051f846",
+            "objectId": "93054fe9-1538-442c-96fd-2040f61f3a99",
+            "permissions": {
+              "keys": [ ],
+              "secrets": [
+                "Get",
+                "List",
+                "Set",
+                "Delete",
+                "Recover",
+                "Backup",
+                "Restore"
+              ],
+              "certificates": [ ]
+            }
           }
         ],
         "sku": {
