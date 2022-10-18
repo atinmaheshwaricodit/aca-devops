@@ -184,7 +184,7 @@
                     "properties": {
                       "VaultUri": "[concat('https://',variables('KeyVaultName'),'.vault.azure.net/')]",
                       "StorageAccount.TableName": "[parameters('StorageAccountTableName')]",
-                      "Encryption.Key": "@Microsoft.KeyVault(SecretUri=https://aca-devops-vault.vault.azure.net/secrets/EncryptionKey/)",
+                      "Encryption.Key": "[concat('@Microsoft.KeyVault(SecretUri=https://', variables('KeyVaultName'), '.vault.azure.net/secrets/',variables('KeyVaultName'),'/)')]",
                       "WEBSITE_DYNAMIC_CACHE": "0",
                       "WEBSITE_LOCAL_CACHE_OPTION": "Never",
                       "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "true"
