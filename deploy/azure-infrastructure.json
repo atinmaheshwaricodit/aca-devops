@@ -112,7 +112,7 @@
       },
       {
         "type": "Microsoft.Storage/storageAccounts",
-        "apiVersion": "2019-06-01",
+        "apiVersion": "2022-05-01",
         "name": "[variables('StorageAccountName')]",
         "location": "[resourceGroup().location]",
         "tags": "[variables('Tags')]",
@@ -126,17 +126,30 @@
           "minimumTlsVersion": "TLS1_2",
           "allowBlobPublicAccess": false,
           "supportsHttpsTrafficOnly": true
-        },
-        "resources": [
-          {
-            "type": "tableServices/tables",
-            "apiVersion": "2019-06-01",
-            "name": "[concat('default/', parameters('StorageAccountTableName'))]",
-            "dependsOn": [
-              "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
-            ]
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/tableServices",
+        "apiVersion": "2022-05-01",
+        "name": "[concat(variables('storageAccountName'), '/default')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        ],
+        "properties": {
+          "cors": {
+            "corsRules": []
           }
-        ]
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+        "apiVersion": "2022-05-01",
+        "name": "[concat(variables('storageAccountName'), '/default/',parameters('StorageAccountTableName'))]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts/tableServices', variables('storageAccountName'), 'default')]",
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        ],
+        "properties": {}
       },
       {
         "type": "Microsoft.Web/serverFarms",
