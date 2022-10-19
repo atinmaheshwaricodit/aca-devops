@@ -53,7 +53,7 @@
     "Keyvault.SecretValue": {
       "reference": {
         "keyVault": {
-          "id": "/subscriptions/#{Azure.Subscription.Id}#/resourceGroups/#{Azure.ResourceGroup.Name}#/providers/Microsoft.KeyVault/vaults/#{Keyvault.Name}#"
+          "id": "/subscriptions/#{Azure.Subscription.Id}#/resourceGroups/aca-devops/providers/Microsoft.KeyVault/vaults/#{Keyvault.Name}#"
         },
         "secretName": "#{Keyvault.SecretName}#"
       }
