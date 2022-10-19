@@ -15,8 +15,4 @@
     <PackageReference Include="coverlet.collector" Version="1.2.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Application\DevOps.App\DevOps.App.csproj" />
-  </ItemGroup>
-
 </Project>

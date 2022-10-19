@@ -1,0 +1,9 @@
+﻿global using DevOps_App;
+global using DevOps_App.Adapters;
+global using DevOps_App.Ports;
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Http;
+global using System;
+global using System.Linq;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
