@@ -4,7 +4,7 @@ pr: none
 trigger:
   branches:
     include:
-    - lab-devops-solution
+    - feat/app-tests
   paths:
     include:
     # REQUIRED : suppose we are releasing the sample-app
