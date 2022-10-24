@@ -72,6 +72,15 @@ stages:
       displayName: Build
       workingDirectory: $(workingDirectory)
 
+    # Run Tests and auto publish test results.
+    - task: DotNetCoreCLI@2
+      displayName: Run App Tests
+      inputs:
+        command: 'test'
+        projects: './$(Api.AppName.App).Tests/$(Api.AppName.App).Tests.csproj'
+        arguments: '--configuration $(buildConfiguration)'
+        workingDirectory: $(workingDirectory)
+
     # Publish it as .NET 6 self contained application for linux runtime
     - task: DotNetCoreCLI@2
       inputs:
