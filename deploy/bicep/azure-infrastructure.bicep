@@ -70,8 +70,8 @@ resource StorageAccountName 'Microsoft.Storage/storageAccounts@2019-06-01' = {
   }
 }
 
-resource default_StorageAccountTableName 'Microsoft.Storage/storageAccounts/tableServices@2019-06-01' = {
-  name: 'default/${StorageAccountTableName}'
+resource StorageAccountTableName_default 'Microsoft.Storage/storageAccounts/tableServices@2022-05-01' = {
+  name: '${StorageAccountTableName}/default'
   dependsOn: [
     StorageAccountName
   ]

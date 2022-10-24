@@ -14,15 +14,19 @@
       }
     },
     "StorageAccountTableName": {
+      "defaultValue": "EncryptionTable",
       "type": "String"
     },
     "Application.Name": {
+      "defaultValue": "dev-we-lab-app",
       "type": "String"
     },
     "Application.Environment": {
+      "defaultValue": "dev",
       "type": "String"
     },
     "Application.Version": {
+      "defaultValue": "1.0",
       "type": "String"
     },
     "Appication.LinuxFxVersion": {
@@ -37,7 +41,7 @@
       "type": "String"
     },
     "Release.RequestedFor": {
-      "defaultValue": "hco",
+      "defaultValue": "lab",
       "type": "String"
     },
     "Release.SourceCodeBranch": {
@@ -117,7 +121,7 @@
     },
     {
       "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2019-06-01",
+      "apiVersion": "2022-05-01",
       "name": "[variables('StorageAccountName')]",
       "location": "[parameters('Location')]",
       "tags": "[variables('Tags')]",
@@ -130,17 +134,25 @@
         "minimumTlsVersion": "TLS1_2",
         "allowBlobPublicAccess": false,
         "supportsHttpsTrafficOnly": true
-      },
-      "resources": [
-        {
-          "type": "Microsoft.Storage/storageAccounts/tableServices",
-          "apiVersion": "2022-05-01",
-          "name": "[concat(parameters('StorageAccountTableName'),'/default')]",
-          "dependsOn": [
-            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
-          ]
-        }
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/tableServices",
+      "apiVersion": "2022-05-01",
+      "name": "[concat(variables('StorageAccountName'),'/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
       ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+      "apiVersion": "2022-05-01",
+      "name": "[concat(variables('StorageAccountName'), '/default/', parameters('StorageAccountTableName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/tableServices', variables('StorageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName'))]"
+      ],
+      "properties": {}
     },
     {
       "type": "Microsoft.Web/serverFarms",
@@ -253,7 +265,7 @@
             "tenantId": "7517bc42-bcf8-4916-a677-b5753051f846",
             "objectId": "93054fe9-1538-442c-96fd-2040f61f3a99",
             "permissions": {
-              "keys": [ ],
+              "keys": [],
               "secrets": [
                 "Get",
                 "List",
@@ -263,7 +275,7 @@
                 "Backup",
                 "Restore"
               ],
-              "certificates": [ ]
+              "certificates": []
             }
           }
         ],
