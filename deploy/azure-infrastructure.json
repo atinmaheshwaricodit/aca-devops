@@ -134,8 +134,8 @@
       "resources": [
         {
           "type": "Microsoft.Storage/storageAccounts/tableServices",
-          "apiVersion": "2019-06-01",
-          "name": "[concat('default/', parameters('StorageAccountTableName'))]",
+          "apiVersion": "2022-05-01",
+          "name": "[concat(parameters('StorageAccountTableName'),'/default')]",
           "dependsOn": [
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
           ]
