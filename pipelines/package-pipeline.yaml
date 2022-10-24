@@ -77,7 +77,7 @@ stages:
       displayName: Run App Tests
       inputs:
         command: 'test'
-        projects: './$(Api.AppName.App).Tests/$(Api.AppName.App).Tests.csproj'
+        projects: '$(workingDirectory)/$(Api.AppName.App).Tests/$(Api.AppName.App).Tests.csproj'
         arguments: '--configuration $(buildConfiguration)'
         workingDirectory: $(workingDirectory)
 
