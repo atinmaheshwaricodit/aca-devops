@@ -2,6 +2,10 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "Location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "String"
+    },
     "Storage.SkuName": {
       "defaultValue": "Standard_LRS",
       "type": "String",
@@ -86,6 +90,7 @@
   },
   "variables": {
     "KeyVaultName": "[concat(parameters('Application.Name'), '-vault')]",
+    "KeyVaultUri": "[concat('https://',variables('KeyVaultName'),'.vault.azure.net/')]",
     "AppServicePlanName": "[concat(parameters('Application.Name'), 'Plan')]",
     "AppServiceName": "[parameters('Application.Name')]",
     "StorageAccountName": "[concat(tolower(replace(parameters('Application.Name'),'-','')), 'storage')]",
@@ -114,10 +119,9 @@
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2019-06-01",
       "name": "[variables('StorageAccountName')]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('Location')]",
       "tags": "[variables('Tags')]",
       "sku": {
-        "tier": "Standard",
         "name": "[parameters('Storage.SkuName')]"
       },
       "kind": "StorageV2",
@@ -129,7 +133,7 @@
       },
       "resources": [
         {
-          "type": "tableServices/tables",
+          "type": "Microsoft.Storage/storageAccounts/tableServices",
           "apiVersion": "2019-06-01",
           "name": "[concat('default/', parameters('StorageAccountTableName'))]",
           "dependsOn": [
@@ -142,7 +146,7 @@
       "type": "Microsoft.Web/serverFarms",
       "apiVersion": "2020-06-01",
       "name": "[variables('AppServicePlanName')]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('Location')]",
       "tags": "[variables('Tags')]",
       "sku": {
         "name": "[parameters('AppSvcPlan.SkuName')]",
@@ -157,7 +161,7 @@
       "type": "Microsoft.Web/sites",
       "apiVersion": "2020-06-01",
       "name": "[variables('AppServiceName')]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('Location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
       ],
@@ -179,13 +183,13 @@
           "dependsOn": [
             "[resourceId('Microsoft.Web/sites', variables('AppServiceName'))]",
             "[resourceId('Microsoft.KeyVault/vaults/', variables('keyVaultName'))]",
-            "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('KeyvaultName'), 'EncryptionKey')]"
+            "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('KeyvaultName'), parameters('Keyvault.SecretName'))]"
           ],
           "properties": {
-            "VaultUri": "[concat('https://',variables('KeyVaultName'),'.vault.azure.net/')]",
-            "StorageAccount.TableName": "[parameters('StorageAccountTableName')]",
-            "Encryption.Key1": "[format('@Microsoft.KeyVault(SecretUri=https://{0}.vault.azure.net/secrets/{1}/)', variables('keyVaultName'), parameters('Keyvault.SecretName'))]",
-            "Encryption.Key2": "@Microsoft.KeyVault(SecretUri=https://aca-devops-vault.vault.azure.net/secrets/EncryptionKey/)",
+            "VaultUri": "[variables('KeyVaultUri')]",
+            "StorageAccountTableName": "[parameters('StorageAccountTableName')]",
+            "EncryptionKey1": "[format('@Microsoft.KeyVault(SecretUri=https://{0}.vault.azure.net/secrets/{1}/)', variables('keyVaultName'), parameters('Keyvault.SecretName'))]",
+            "EncryptionKey2": "@Microsoft.KeyVault(SecretUri=https://aca-devops-vault.vault.azure.net/secrets/EncryptionKey/)",
             "WEBSITE_DYNAMIC_CACHE": "0",
             "WEBSITE_LOCAL_CACHE_OPTION": "Never",
             "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "true"
@@ -212,7 +216,7 @@
       "type": "Microsoft.KeyVault/vaults",
       "apiVersion": "2019-09-01",
       "name": "[variables('KeyvaultName')]",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('Location')]",
       "tags": "[variables('Tags')]",
       "properties": {
         "enabledForDeployment": true,
