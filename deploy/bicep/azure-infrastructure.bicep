@@ -2,15 +2,15 @@ param Location string = resourceGroup().location
 
 @description('Provide the pricing tier of the key vault.')
 param Storage_SkuName string = 'Standard_LRS'
-param StorageAccountTableName string
-param Application_Name string
-param Application_Environment string
-param Application_Version string
+param StorageAccountTableName string = 'EncryptionTable'
+param Application_Name string = 'dev-we-lab-app'
+param Application_Environment string = 'dev'
+param Application_Version string = '1.0'
 
 @description('The Runtime stack of current web app')
 param Appication_LinuxFxVersion string = 'DOTNETCORE|6.0'
 param Release_Name string = 'releasetest'
-param Release_RequestedFor string = 'hco'
+param Release_RequestedFor string = 'lab'
 param Release_SourceCodeBranch string = 'develop'
 param Release_TriggerType string = 'Manual'
 param Release_Url string = 'url'
@@ -54,7 +54,7 @@ resource default 'Microsoft.Resources/tags@2019-10-01' = {
   dependsOn: []
 }
 
-resource StorageAccountName 'Microsoft.Storage/storageAccounts@2019-06-01' = {
+resource StorageAccountName 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: StorageAccountName_var
   location: Location
   tags: Tags
@@ -70,8 +70,15 @@ resource StorageAccountName 'Microsoft.Storage/storageAccounts@2019-06-01' = {
   }
 }
 
-resource StorageAccountTableName_default 'Microsoft.Storage/storageAccounts/tableServices@2022-05-01' = {
-  name: '${StorageAccountTableName}/default'
+resource StorageAccountName_default 'Microsoft.Storage/storageAccounts/tableServices@2022-05-01' = {
+  parent: StorageAccountName
+  name: 'default'
+}
+
+resource StorageAccountName_default_StorageAccountTableName 'Microsoft.Storage/storageAccounts/tableServices/tables@2022-05-01' = {
+  parent: StorageAccountName_default
+  name: StorageAccountTableName
+  properties: {}
   dependsOn: [
     StorageAccountName
   ]
@@ -197,7 +204,7 @@ resource KeyvaultName 'Microsoft.KeyVault/vaults@2019-09-01' = {
 
 resource KeyvaultName_Keyvault_SecretName 'Microsoft.KeyVault/vaults/secrets@2016-10-01' = {
   parent: KeyvaultName
-  name: Keyvault_SecretName
+  name: '${Keyvault_SecretName}'
   tags: Tags
   properties: {
     value: Keyvault_SecretValue
