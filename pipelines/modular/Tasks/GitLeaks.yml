@@ -1,0 +1,19 @@
+parameters:
+- name: basePath
+  type: string
+
+#
+# Gitleaks task to scan code and upload results
+# This uses the GitLeaks.toml file to check if any hardcoded secrets or password are present, for more information, see https://github.com/zricethezav/gitleaks
+#
+
+steps:
+- task: Foxholenl.Gitleaks.foxholenl-gitleaks.Gitleaks@2
+  displayName: 'Gitleaks scan'
+  inputs:
+    scanlocation: $(basePath)
+    verbose: false
+    redact: false
+    scanmode: nogit
+    configtype: custom
+    configfile: $(Build.Repository.LocalPath)/pipelines/modular/Tasks/GitLeaks.toml

@@ -1,0 +1,40 @@
+parameters:
+- name: basePath
+  type: string
+- name: component 
+  type: object 
+
+#
+# Example:
+# - type: BicepTemplate.v1
+#   name: LogicApp
+#   resourcesPath: resources/LogicApps
+#   templateName: rcv-example-create
+#   resourceGroupName: TrainingAccountSP
+#   testsToSkip: $(ARM.TTK.TestsToSkip)   
+#
+
+steps:
+- task: Sam-Cogan.ARMTTKExtension.RunARMTTKTests.RunARMTTKTests@1
+  condition: ne('${{parameters.component.skipTest}}', 'true')
+  displayName: 'Run Azure RM TTK Tests'
+  inputs:
+    templatelocation: '${{parameters.basePath}}\${{parameters.component.resourcesPath}}'
+    resultLocation: '$(Build.ArtifactStagingDirectory)\ttk-results'
+    ${{if ne(parameters.component.testsToSkip, '')}}:
+      skipTests: '${{parameters.component.testsToSkip}}'
+    allTemplatesMain: true
+    cliOutputResults: true
+  continueOnError: true
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: ${{parameters.basePath}}/${{parameters.component.resourcesPath}}
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish All resources'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifact: '${{parameters.component.name}}'
+    publishLocation: 'pipeline'

@@ -1,0 +1,20 @@
+parameters:
+- name: basePath
+  type: string
+- name: component 
+  type: object 
+
+#
+# Example:
+# - type: NuGetPackage.v1
+#   name: Common
+#   path: common
+#
+
+steps:
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish code'
+  inputs:
+    targetPath: '${{parameters.basePath}}\${{parameters.component.path}}/'
+    artifact: 'code'
+    publishLocation: 'pipeline'

@@ -1,0 +1,74 @@
+parameters:
+- name: basePath
+  type: string
+- name: component 
+  type: object 
+
+#
+# Example:
+# - type: AzureFunction.v1
+#   name: testfunction
+#   resourcesPath: resources/Functions
+#   functionPath: function
+#   vstsFeed: bbba375f-a274-4afd-b88a-5969511ce2eb/30299667-5199-4471-9bcb-70a5e2559d5c
+#   templateName: function
+#   resourceGroupName: TrainingAccountSP
+#   functionName: $(Infra.Environment.ResourcePrefix)-fnc-example-1-0   
+#   testsToSkip: $(ARM.TTK.TestsToSkip)
+#
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: 6.x
+
+- task: Sam-Cogan.ARMTTKExtension.RunARMTTKTests.RunARMTTKTests@1
+  displayName: 'Run Azure RM TTK Tests'
+  inputs:
+    templatelocation: '${{parameters.basePath}}\${{parameters.component.resourcesPath}}'
+    resultLocation: '$(Build.ArtifactStagingDirectory)\ttk-results'
+    allTemplatesMain: true
+    ${{if ne(parameters.component.testsToSkip, '')}}:
+      skipTests: '${{parameters.component.testsToSkip}}'
+    cliOutputResults: true
+  continueOnError: true
+
+- task: CmdLine@2
+  displayName: 'Compile Bicep File'
+  inputs:
+    script: az bicep build --file ${{parameters.basePath}}\${{parameters.component.resourcesPath}}\${{parameters.component.templateName}}.bicep --outfile  ${{parameters.basePath}}\${{parameters.component.resourcesPath}}\${{parameters.component.templateName}}.json
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restore NuGet'
+  inputs:
+    command: restore
+    projects: '${{parameters.basePath}}\${{parameters.component.functionPath}}/*.csproj'
+    vstsFeed: '${{parameters.component.vstsFeed}}'
+    includeNuGetOrg: true
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build Function'
+  inputs:
+    projects: '${{parameters.basePath}}\${{parameters.component.functionPath}}/*.csproj'
+    arguments: '--output publish_output_function --configuration Release'
+
+- task: ArchiveFiles@2
+  displayName: 'Archive Function'
+  inputs:
+    rootFolderOrFile: 'publish_output_function/'
+    includeRootFolder: false
+    archiveType: zip
+    archiveFile: '$(Build.ArtifactStagingDirectory)/function.zip'
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: ${{parameters.basePath}}\${{parameters.component.resourcesPath}}
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish All resources'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifact: '${{parameters.component.name}}'
+    publishLocation: 'pipeline'  

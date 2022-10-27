@@ -1,0 +1,67 @@
+parameters:
+  - name: basePath
+    type: string
+  - name: component
+    type: object
+
+#
+# Example:
+# - type: Frontend.v1
+#   name: Frontend
+#   resourceGroupName: TrainingAccountSP
+#   appName: $(Infra.Environment.ResourcePrefix)-frontend
+#
+
+steps:
+  - task: NodeTool@0
+    displayName: "Install Node.js"
+    inputs:
+      versionSpec: "14.19.x"
+
+  - task: CmdLine@2
+    displayName: "Install yarn"
+    inputs:
+      script: |
+        yarn install
+      workingDirectory: "${{parameters.basePath}}"
+      verbose: false
+
+  - task: CmdLine@2
+    displayName: "Run tests"
+    inputs:
+      script: |
+        yarn test
+      workingDirectory: "${{parameters.basePath}}"
+      verbose: false
+
+  - task: CmdLine@2
+    displayName: "Lint code"
+    inputs:
+      script: |
+        yarn lint
+      workingDirectory: "${{parameters.basePath}}"
+      verbose: false
+
+  - task: CmdLine@2
+    displayName: "Build yarn"
+    inputs:
+      script: |
+        yarn build
+      workingDirectory: "${{parameters.basePath}}"
+      verbose: false
+
+  - task: ArchiveFiles@2
+    displayName: "Archive Frontend"
+    inputs:
+      rootFolderOrFile: "${{parameters.basePath}}"
+      includeRootFolder: false
+      archiveType: "zip"
+      archiveFile: "$(Build.ArtifactStagingDirectory)/frontend.zip"
+      replaceExistingArchive: true
+
+  - task: PublishPipelineArtifact@1
+    displayName: "Publish All resources"
+    inputs:
+      targetPath: "$(Build.ArtifactStagingDirectory)"
+      artifact: "${{parameters.component.name}}"
+      publishLocation: "pipeline"

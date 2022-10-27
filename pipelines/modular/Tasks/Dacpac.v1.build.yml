@@ -1,0 +1,35 @@
+parameters:
+- name: basePath
+  type: string
+- name: component 
+  type: object 
+
+#
+# Example:
+# - type: Dacpac.v1
+#   name: database
+#   projectPath: database
+#   projectName: Database
+#   resourceGroupName: TrainingAccountSP
+#   databasePasswordSecretName: infra-sql-server-password
+#   serverName: devops-tst-we-sqlsvr.database.windows.net
+#   databaseName: Predictions
+#   userName: SqlServerAdmin
+#
+
+steps:  
+- task: VSBuild@1
+  displayName: 'Building DACPAC'
+  inputs:
+    solution: '${{parameters.basePath}}\${{parameters.component.projectPath}}/${{parameters.component.projectName}}.sqlproj'
+    platform: 'AnyCPU'
+    configuration: 'Release'
+    maximumCpuCount: true
+    msbuildArgs: '/p:OutDir=$(Build.ArtifactStagingDirectory)'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish All resources'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifact: '${{parameters.component.name}}'
+    publishLocation: 'pipeline'

@@ -1,0 +1,35 @@
+parameters:
+- name: component 
+  type: object 
+- name: environment 
+  type: object
+
+steps:
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: 'Tokenize Function Parameter Files'
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}'
+    targetFiles: '*.parameters.json'
+    escapeType: none
+    actionOnMissing: fail
+    enableTelemetry: false
+
+- task: AzureResourceGroupDeployment@2
+  displayName: 'Deploy Function Site'
+  inputs:
+    azureSubscription: '${{parameters.environment.azureServiceConnection}}'
+    resourceGroupName: '${{parameters.component.resourceGroupName}}'
+    location: '$(Infra_Environment_Region_Primary)' 
+    csmFile: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/${{parameters.component.templateName}}.json'
+    csmParametersFile: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/${{parameters.component.templateName}}.parameters.json'
+    deploymentOutputs: ArmOutputs
+
+- task: AzureRmWebAppDeployment@4
+  displayName: 'Deploy Function'
+  inputs:
+    azureSubscription: '${{parameters.environment.azureServiceConnection}}'
+    appType: functionApp
+    WebAppName: '${{parameters.component.functionName}}'
+    packageForLinux: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/function.zip'
+    deployToSlotOrASE: false
+    resourceGroupName: '${{parameters.component.resourceGroupName}}'

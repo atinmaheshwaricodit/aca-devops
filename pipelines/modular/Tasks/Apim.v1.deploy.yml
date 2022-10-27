@@ -1,0 +1,61 @@
+parameters:
+- name: component 
+  type: object 
+- name: environment 
+  type: object
+
+steps:
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: 'Tokenize APIM Policies'
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/Policies'
+    targetFiles: '*.xml'
+    escapeType: none
+    actionOnMissing: fail
+    enableTelemetry: false
+
+- template: CopyBlob.v1.yml
+  parameters:
+    subscription: ${{parameters.environment.azureServiceConnection}}
+    name: ApimPolicies
+    container: apimpolicies
+    storageAccount: $(Infra_StorageAccount_Name)
+    prefix: $(Build.DefinitionName)-${{parameters.component.name}}
+    source: $(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/Policies
+
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: 'Tokenize OpenAPI File'
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/OpenAPI'
+    targetFiles: '*.json'
+    escapeType: none
+    actionOnMissing: fail
+    enableTelemetry: false
+
+- template: CopyBlob.v1.yml
+  parameters:
+    subscription: ${{parameters.environment.azureServiceConnection}}
+    name: ApimOpenApi
+    container: apimopenapi
+    storageAccount: $(Infra_StorageAccount_Name)
+    prefix: $(Build.DefinitionName)-${{parameters.component.name}}
+    source: $(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/OpenAPI
+
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: 'Tokenize Parameter Files'
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}'
+    targetFiles: '**/*.parameters.json'
+    escapeType: none
+    actionOnMissing: fail
+    enableTelemetry: false
+
+- task: AzureResourceGroupDeployment@2
+  displayName: 'Deploy APIM'
+  inputs:
+    azureSubscription: '${{parameters.environment.azureServiceConnection}}'
+    resourceGroupName: '$(Infra_ResourceGroup_Name)'
+    location: '$(Infra_Environment_Region_Primary)'
+    csmFile: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/apim.json'
+    csmParametersFile: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/apim.parameters.json'
+    deploymentOutputs: ArmOutputs

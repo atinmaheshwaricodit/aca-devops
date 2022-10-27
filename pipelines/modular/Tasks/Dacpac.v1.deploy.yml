@@ -1,0 +1,31 @@
+parameters:
+- name: component 
+  type: object 
+- name: environment 
+  type: object
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Get Database ConnectionString'
+  inputs:
+      azureSubscription: '${{parameters.environment.azureServiceConnection}}'
+      scriptType: 'pscore'
+      scriptLocation: 'inlineScript'    
+      errorActionPreference: 'stop'
+      inlineScript: |  
+        $value = az keyvault secret show --name ${{parameters.component.databasePasswordSecretName}} --vault-name $(Infra_Secrets_KeyVault_Name) --query "value" -o tsv
+        Write-Host "##vso[task.setvariable variable=Database_Password;issecret=true]$value"
+
+- task: SqlAzureDacpacDeployment@1
+  inputs:
+    azureConnectionType: 'ConnectedServiceNameARM'
+    azureSubscription: '${{parameters.environment.azureServiceConnection}}'
+    AuthenticationType: 'server'
+    serverName: '${{parameters.component.serverName}}'
+    databaseName: '${{parameters.component.databaseName}}'
+    sqlUsername: '${{parameters.component.userName}}'
+    sqlPassword: '$(Database_Password)'
+    deployType: 'DacpacTask'
+    deploymentAction: 'Publish'
+    dacpacFile: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/${{parameters.component.projectName}}.dacpac'
+    additionalArguments: '/SourceTrustServerCertificate:True'

@@ -1,0 +1,25 @@
+parameters:
+- name: config 
+  type: object 
+
+extends: 
+  template: /pipelines/modular/template.v1.yml
+  parameters: 
+    config: ${{parameters.config}}
+    buildVariableGroups: 
+    components:
+
+#    - type: Apim.v1
+#      name: Apim
+#      resourcesPath: resources/apim
+#      testsToSkip: $(ARM.TTK.TestsToSkip)
+
+#    - type: AzureFunction.v1
+#      name: testfunction
+#      resourcesPath: resources/Functions
+#      functionPath: function
+#      vstsFeed: 558edd71-d754-49e2-8fd9-aac14a58d177
+#      templateName: function
+#      resourceGroupName: codit-$(Infra.Environment.ShortName)-example
+#      functionName: $(Infra.Environment.ResourcePrefix)-fnc-example-1-0
+#      testsToSkip: $(ARM.TTK.TestsToSkip)

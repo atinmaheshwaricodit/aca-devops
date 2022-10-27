@@ -1,0 +1,126 @@
+parameters:
+  - name: config
+    type: object
+  - name: buildVariableGroups
+    type: object
+    default: []
+  - name: components
+    type: object
+    default: []      
+  - name: deployVariableGroups
+    type: object
+    default: []    
+  - name: environments
+    type: object
+    default: 
+    - name: tst
+      fullName: TEST
+      azureServiceConnection: 'TrainingAccountSP'  
+
+variables:
+  - name: basePath
+    value: $(Build.Repository.LocalPath)/${{parameters.config.basePath}}  
+  - ${{if gt(length(parameters.buildVariableGroups),0) }}:
+    - ${{ each variableGroup in parameters.buildVariableGroups }}:
+      - group: ${{variableGroup}}
+
+stages:
+  - ${{if eq(parameters.config.isBuild, true)}}:
+
+### BUILD STAGE ###
+    - stage: Build
+      jobs:      
+        # PIPELINERESOURCES      
+        - job: PublishPipelineResources
+          displayName: Publish pipeline resources as artifact
+          steps:       
+          - task: PublishPipelineArtifact@1
+            displayName: Publish pipeline artifacts for further consumption
+            inputs:
+              targetPath: '$(Build.Repository.LocalPath)/pipelines'
+              artifact: 'Pipeline'
+              publishLocation: 'pipeline'
+        - job: GitleaksScan
+          displayName: Gitleaks scan
+          dependsOn:
+            - PublishPipelineResources
+          steps:       
+          - template: Tasks/GitLeaks.yml
+            parameters:
+              basePath: $(basePath)
+        - ${{if gt(length(parameters.components),0) }}:
+          - ${{ each component in parameters.components }}:
+            - job: ${{component.name}}
+              displayName: 'Build - ${{component.name}}'
+              dependsOn:
+              - PublishPipelineResources
+              - GitleaksScan
+              - ${{ each name in component.dependsOn }}:
+                - ${{name}}
+              steps:
+              - template: Tasks/${{component.type}}.build.yml
+                parameters:
+                  basePath: $(basePath)
+                  component: ${{component}}
+        - job: 
+          displayName: 'Post Build Tasks'
+          dependsOn:
+          - ${{if gt(length(parameters.components),0) }}:
+            - ${{ each component in parameters.components }}:
+              - ${{component.name}}
+          steps:
+          - template: Tasks/PostBuild.yml
+            parameters:
+              basePath: $(basePath)
+              components: ${{parameters.components}}
+
+### DEPLOY STAGES ###
+  - ${{if eq(parameters.config.isDeploy, true)}}:
+    - stage: Stage_SetVersion
+      displayName: Set build version number 
+      jobs:
+      - job: setVersion
+        displayName: Set build version number
+        steps:
+        - powershell: |
+            $dateTime = $(Get-Date -format yyyyMMddHmmss)
+            Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.BuildPipeline.runName)-$dateTime"
+            Write-Host "Pipeline version is ' $(resources.pipeline.BuildPipeline.runName)-$dateTime'"
+          displayName: 'Change pipeline version'
+    - ${{ each environment in parameters.environments }}:
+      - stage: Stage_${{environment.name}}
+        displayName: Deploy - ${{environment.name}}
+        dependsOn:
+          - Stage_SetVersion
+          - ${{ each dependency in environment.dependsOn }}:
+            - Stage_${{dependency}}
+        ${{if and(ne(environment.condition, ''), eq(parameters.config.environment, 'Default'))}}:
+          condition: and(succeeded(), ${{environment.condition}})
+        ${{if and(eq(environment.condition, ''), eq(parameters.config.environment, 'Default'))}}:
+          condition: succeeded()              
+        ${{if and(ne(environment.condition, ''), ne(parameters.config.environment, 'Default'))}}:
+          condition: and(eq('${{parameters.config.environment}}', '${{environment.name}}'), ${{environment.condition}})
+        ${{if and(eq(environment.condition, ''), ne(parameters.config.environment, 'Default'))}}:
+          condition: eq('${{parameters.config.environment}}', '${{environment.name}}')
+        variables:
+        - group: infra.${{environment.name}}
+        - ${{if gt(length(parameters.deployVariableGroups),0) }}:
+          - ${{ each variableGroup in parameters.deployVariableGroups }}:
+            - group: ${{variableGroup}}${{environment.name}}
+        jobs:
+        - ${{if gt(length(parameters.components),0) }}:
+          - ${{ each component in parameters.components }}:
+            - deployment: Deploy_${{component.name}}_${{environment.name}}
+              dependsOn:
+              - ${{ each dependency in component.dependsOn }}:
+                - Deploy_${{dependency}}_${{environment.name}}
+              displayName: Deploy ${{component.name}}
+              environment: ${{environment.fullName}}
+              strategy:
+                runOnce:
+                  deploy:
+                    steps:
+                    - template: Tasks/${{component.type}}.deploy.yml
+                      parameters:
+                        component: ${{component}}
+                        environment: ${{environment}}

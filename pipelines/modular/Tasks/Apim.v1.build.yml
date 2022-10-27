@@ -1,0 +1,58 @@
+parameters:
+- name: basePath
+  type: string
+- name: component 
+  type: object 
+
+#
+# Example:
+# - type: Apim.v1
+#   name: APIM
+#   resourcesPath: resources/apim
+#   openApiPath: src/functions/openapi/health
+#   testsToSkip: $(ARM.TTK.TestsToSkip)
+#
+
+steps:
+- task: Sam-Cogan.ARMTTKExtension.RunARMTTKTests.RunARMTTKTests@1
+  displayName: 'Run Azure RM TTK Tests'
+  inputs:
+    templatelocation: '${{parameters.basePath}}\${{parameters.component.resourcesPath}}'
+    resultLocation: '$(Build.ArtifactStagingDirectory)\ttk-results'
+    ${{if ne(parameters.component.testsToSkip, '')}}:
+      skipTests: '${{parameters.component.testsToSkip}}'
+    allTemplatesMain: true
+    cliOutputResults: true
+  continueOnError: true
+
+- task: CmdLine@2
+  displayName: 'Install OpenAPI Linting Tool (stoplight/spectral)'
+  inputs:
+    script: npm install -g @stoplight/spectral-cli
+
+- task: CmdLine@2
+  displayName: 'Lint OpenAPI specs'
+  inputs:
+    script: spectral lint ${{parameters.basePath}}\${{parameters.component.resourcesPath}}\OpenAPI\openapi.json --ruleset openapi-rules.yaml --fail-severity "warn"
+
+- task: CmdLine@2
+  displayName: 'Compile Bicep File'
+  inputs:
+    script: az bicep build --file ${{parameters.basePath}}\${{parameters.component.resourcesPath}}\apim.bicep --outfile  ${{parameters.basePath}}\${{parameters.component.resourcesPath}}\apim.json
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: ${{parameters.basePath}}\${{parameters.component.resourcesPath}}
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Build.Repository.LocalPath)\${{parameters.component.openApiPath}}
+    targetFolder: $(Build.ArtifactStagingDirectory)/OpenAPI
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish All resources'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifact: '${{parameters.component.name}}'
+    publishLocation: 'pipeline'  

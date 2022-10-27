@@ -1,0 +1,19 @@
+parameters:
+- name: component 
+  type: object 
+- name: environment 
+  type: object
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'Package'
+  inputs:
+    command: pack
+    packagesToPack: '$(Pipeline.Workspace)/BuildPipeline/code/*.csproj'
+    buildProperties: 'PackageVersion=$(resources.pipeline.BuildPipeline.runName)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Push'
+  inputs:
+    command: push
+    publishVstsFeed: 'bbba375f-a274-4afd-b88a-5969511ce2eb/30299667-5199-4471-9bcb-70a5e2559d5c'

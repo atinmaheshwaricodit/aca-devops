@@ -1,0 +1,40 @@
+name: ${{ parameters.major }}.${{ parameters.minor }}$(rev:.r)
+
+parameters:
+- name: major
+  displayName: Major Version
+  type: string
+  default: 1
+- name: minor
+  displayName: Minor Version
+  type: string
+  default: 0
+
+pool:
+  vmImage: windows-2022
+
+trigger:
+  branches:
+    include: 
+    - main
+    - feature/*
+  paths: 
+    include: 
+    - %BasePath%
+
+pr:
+  branches:
+    include: 
+    - main
+    - feature/*
+  paths: 
+    include: 
+    - %BasePath%
+
+extends: 
+  template: solution.yml
+  parameters: 
+    config: 
+      basePath: .%BasePath%
+      isBuild: true
+      isDeploy: false

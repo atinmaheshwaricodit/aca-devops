@@ -1,0 +1,26 @@
+parameters:
+- name: basePath
+  type: string
+- name: component 
+  type: object 
+
+#
+# Example:
+# - type: AzurePowershell.v1
+#   name: AzurePowershell
+#   resourcesPath: resources/Scripts
+#   filename: script.ps1
+#
+
+steps:
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: ${{parameters.basePath}}\${{parameters.component.resourcesPath}}
+    targetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish All resources'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifact: '${{parameters.component.name}}'
+    publishLocation: 'pipeline'

@@ -1,0 +1,30 @@
+parameters:
+- name: subscription
+  type: string
+- name: name
+  type: string
+- name: container 
+  type: string 
+- name: storageAccount 
+  type: string
+- name: prefix
+  type: string
+- name: source
+  type: string
+
+steps:       
+  - task: AzureCLI@2
+    displayName: 'Upload file to ${{parameters.storageAccount}}'
+    name: ${{parameters.name}}
+    inputs:
+      azureSubscription: '${{parameters.subscription}}'
+      scriptType: 'pscore'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az storage blob upload-batch -d "${{parameters.container}}/${{parameters.prefix}}" --account-name "${{parameters.storageAccount}}" -s "${{parameters.source}}" --overwrite
+        $token = az storage container generate-sas --name ${{parameters.container}} --account-name ${{parameters.storageAccount}} --start (Get-Date((get-date ).AddDays(-1))  -Format "yyyy-MM-dd")  --expiry (Get-Date((get-date ).AddDays(1))  -Format "yyyy-MM-dd") --https-only --permissions r
+        $url = [string]::Format("https://{0}.blob.core.windows.net/{1}","${{parameters.storageAccount}}", "${{parameters.container}}/${{parameters.prefix}}")
+        $token = [string]::Format("?{0}", $token.Substring(1, $token.Length-2))
+        Write-Output("##vso[task.setvariable variable=SasToken;isOutput=true;]$token")
+        Write-Output("##vso[task.setvariable variable=Url;isOutput=true;]$url")
+        Write-Host $url

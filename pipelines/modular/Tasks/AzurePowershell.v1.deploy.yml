@@ -1,0 +1,24 @@
+parameters:
+- name: component 
+  type: object 
+- name: environment 
+  type: object
+
+steps: 
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: 'Tokenize Powershell scripts'
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}'
+    targetFiles: '*.ps1'
+    escapeType: none
+    actionOnMissing: fail
+    enableTelemetry: false     
+
+- task: AzurePowerShell@5
+  displayName: 'Execute Script'
+  inputs:
+    azureSubscription: '${{parameters.environment.azureServiceConnection}}'
+    scriptPath: $(Pipeline.Workspace)/BuildPipeline/${{parameters.component.name}}/${{parameters.component.filename}}.ps1
+    failOnStandardError: true
+    azurePowerShellVersion: latestVersion
+    pwsh: true
