@@ -1,0 +1,37 @@
+variables:
+  - name: Your.Initials
+    value: jdp
+  - name: Resource.Prefix
+    value: $(App.Environment.Code)-$(Region.ShortName)-$(Your.Initials)
+  - name: Azure.ResourceGroup.Name
+    value: az-learning-$(Your.Initials)
+  - name: Api.Name
+    value: $(Resource.Prefix)-app
+  - name: Api.DotnetVersion.Infra
+    value: DOTNETCORE|6.0
+  - name: Api.DotnetVersion.App
+    value: 6.0.x
+  - name: Api.SolutionFile.App
+    value: 'DevOps.App.sln'
+  - name: Api.AppName.App
+    value: 'DevOps_App'
+  - name: Api.DotNetFramework.App
+    value: net6.0
+  - name: Api.TargetRuntime.App
+    value: linux-x64
+  - name: Keyvault.Name
+    value: aca-devops-vault
+  - name: Storage.SkuName
+    value: Standard_LRS
+  - name: Keyvault.SkuName
+    value: Standard
+  - name: Keyvault.SecretName
+    value: EncryptionKey
+  - name: AppSvcPlan.SkuName
+    value: B1
+  - name: StorageAccount.TableName
+    value: EncryptionTable
+  - name: Release.ObjectId
+    value: $(DevOps.ObjectId) 
+  - name: Release.TenantId
+    value: $(DevOps.TenantId)

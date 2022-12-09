@@ -1,0 +1,110 @@
+name: ${{ parameters.major }}.${{ parameters.minor }}$(rev:.r)
+
+pr: none
+trigger:
+  branches:
+    include:
+    - lab-devops
+  paths:
+    include:
+    # REQUIRED : suppose we are releasing the sample-app
+    - /deploy/
+    - /src/
+
+parameters:
+- name: major
+  displayName: Major Version
+  type: string
+  default: 1
+- name: minor
+  displayName: Minor Version
+  type: string
+  default: 0
+- name: loggingLevel
+  displayName: Logging Level
+  type: string
+  default: Pipeline
+  values:
+  - Pipeline
+  - Debug
+
+variables:
+- template: ./variables/apps/app-shared.yaml
+- name: vmImage
+  value: 'ubuntu-latest'
+- name: buildConfiguration
+  value: 'Release'
+- name: workingDirectory
+  value: '$(System.DefaultWorkingDirectory)/src/Application'
+
+pool:
+  vmImage: $(vmImage)
+
+stages:
+- stage: Package
+  displayName: Package
+  dependsOn: []
+  jobs:
+  - job: validate_and_publish
+    displayName: Validate & Publish Artifact
+    steps:
+    # Validation    
+    - task: CmdLine@2
+      condition: eq('${{parameters['loggingLevel']}}', 'Debug')
+      displayName: "[Debug]"
+      inputs:
+        script: 'ls -R $(Pipeline.Workspace)'
+    - task: CmdLine@2
+      displayName: Install jsonlint
+      inputs:
+        script: 'sudo npm install -g jsonlint-cli'
+    - task: CmdLine@2
+      displayName: Lint JSON files
+      inputs:
+        script: 'jsonlint-cli $(Pipeline.Workspace)/s/deploy/**.json'
+    
+    # TODO: Build your app  
+    - task: UseDotNet@2
+      inputs:
+        version: $(Api.DotNetVersion.App)
+    - script: dotnet build ./$(Api.AppName.App)/$(Api.AppName.App).csproj --configuration $(buildConfiguration)
+      displayName: Build
+      workingDirectory: $(workingDirectory)
+    # TODO: Your verification steps here
+    #- task: DotNetCoreCLI@2  
+    #  displayName: 'Test'  
+    #  inputs:
+    #    command: test
+    #    projects: './$(Api.AppName.App).Tests/$(Api.AppName.App).Tests.csproj'
+    #    arguments: '--configuration $(buildConfiguration)'
+    # Publish it as .NET 6 self contained application for linux runtime
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: publish
+        publishWebProjects: True
+        arguments: '--configuration $(buildConfiguration) --framework $(Api.DotNetFramework.App) --runtime $(Api.TargetRuntime.App) --self-contained --output $(Build.ArtifactStagingDirectory)/publish_output/app'
+        zipAfterPublish: True
+        workingDirectory: '$(workingDirectory)'
+        projects: |
+          $(workingDirectory)/$(Api.AppName.App)/$(Api.AppName.App).csproj
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/publish_output/app'
+        artifact: 'app'
+        publishLocation: 'pipeline'
+    # Publish
+    - task: CopyFiles@2
+      displayName: Copy ARM templates
+      inputs:
+        SourceFolder: deploy
+        Contents: |
+          azure-infrastructure.json
+          azure-infrasturcture.parameters.json
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/publish_output/arm'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/publish_output/arm'
+        artifact: 'arm'
+        publishLocation: 'pipeline'

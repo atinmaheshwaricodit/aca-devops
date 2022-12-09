@@ -1,0 +1,60 @@
+parameters:
+  azureResourceManagerConnection: ''
+  subscriptionId: ''
+  resourceGroupName: ''
+  artifactFolder: '$(Pipeline.Workspace)/package_build/artifact'
+  location: ''
+  loggingLevel: ''
+
+steps:
+- ${{ if eq(parameters.loggingLevel, 'Debug') }}:
+  - task: CmdLine@2
+    displayName: "[Debug] Output artifact structure"
+    inputs:
+      script: 'ls ${{parameters.artifactFolder}}'
+
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: Replace Tokens in ARM template
+  inputs:
+    rootDirectory: '${{parameters.artifactFolder}}/arm/'
+    targetFiles: '*.json'
+    encoding: 'auto'
+    writeBOM: true
+    verbosity: 'detailed'
+    actionOnMissing: 'fail'
+    keepToken: false
+    tokenPrefix: '#{'
+    tokenSuffix: '}#'
+
+# Show ARM template & parameter values before deployment
+- ${{ if eq(parameters.loggingLevel, 'Debug') }}:
+  - task: PowerShell@2
+    displayName: '[Debug] Output ARM templates that will be deployed'
+    inputs:
+      targetType: inline
+      script: |
+        $files = Get-ChildItem -Path ${{parameters.artifactFolder}}\arm\*.json
+        foreach ($file in $files)
+        {
+          Write-Host "=== ARM template Output ==="
+          Write-Host "Filename: ($file)" 
+          $content = Get-Content $file
+          Write-Host $content
+        }
+
+# Deploy through ARM
+- task: AzureResourceManagerTemplateDeployment@3
+  displayName: 'Deploy ARM template on ${{parameters.resourceGroupName}}'
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: '${{parameters.azureResourceManagerConnection}}'
+    subscriptionId: '${{parameters.subscriptionId}}'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: '${{parameters.resourceGroupName}}'
+    location: '${{parameters.location}}'
+    templateLocation: 'Linked artifact'
+    csmFile: '${{parameters.artifactFolder}}/arm/armtemplate.json'
+    csmParametersFile: '${{parameters.artifactFolder}}/arm/armtemplate.parameters.json'
+    deploymentMode: 'Incremental'
+    deploymentOutputs: 'ArmOutputs'
+  
