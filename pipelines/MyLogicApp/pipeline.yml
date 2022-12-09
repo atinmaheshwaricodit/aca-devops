@@ -1,0 +1,44 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- lab-devops
+
+pool:
+  vmImage: windows-latest
+
+steps:
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/MyLogicApp/Templates'
+    Contents: '*.json'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/Templates'
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)/Templates'
+    artifact: 'Resources'
+    publishLocation: 'pipeline'
+#normaal: hier stopt de CI pipeline
+# stage voor CD pipeline (kan een andere of dezelfde yaml)
+# in CD pipeline eerst terug artifact downloaden 
+- task: DownloadPipelineArtifact@2
+  inputs:
+    buildType: 'current'
+    artifactName: 'Resources'
+    targetPath: '$(Pipeline.Workspace)/Resources'
+# daarna tokens replacen in arm templates
+# dan worden ze gedeployed naar Azure:
+- task: AzureResourceManagerTemplateDeployment@3
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: 'TrainingAccountSP'
+    subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: 'paas-training-instructor'
+    location: 'West Europe'
+    templateLocation: 'Linked artifact'
+    csmFile: '$(Pipeline.Workspace)/Resources/logicapp.json'
+    csmParametersFile: '$(Pipeline.Workspace)/Resources/logicapp.parameters.json'
+    deploymentMode: 'Incremental'
