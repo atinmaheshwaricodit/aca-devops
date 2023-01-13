@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "workflows_mylogicapp_lab_name": {
-            "defaultValue": "mylogicapp-xxx",
+            "defaultValue": "mylogicapp-hco",
             "type": "String"
         }
     },
