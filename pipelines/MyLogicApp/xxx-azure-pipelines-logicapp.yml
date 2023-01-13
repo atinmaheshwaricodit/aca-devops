@@ -1,17 +1,39 @@
 # Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+ # Start with a minimal pipeline that you can customize to build and deploy your code.
+ # Add steps that build, run tests, deploy, and more:
+ # https://aka.ms/yaml
 
-trigger:
-- lab-xxx
+ trigger:
+ - lab-xxx
 
-pool:
-  vmImage: windows-latest
+ pool:
+   vmImage: windows-latest
 
-steps:
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: 'src/MyLogicApp/Templates'
-    Contents: '*.json'
-    TargetFolder: '$(Build.Artifactstagingdirectory)/Templates'
+ steps:
+ - task: CopyFiles@2
+   inputs:
+     SourceFolder: 'src/MyLogicApp/Templates'
+     Contents: '*.json'
+     TargetFolder: '$(build.artifactstagingdirectory)/Templates'
+ - task: PublishPipelineArtifact@1
+   inputs:
+     targetPath: '$(build.artifactstagingdirectory)/Templates'
+     artifact: 'Resources'
+     publishLocation: 'pipeline'
+ - task: DownloadPipelineArtifact@2
+   inputs:
+     buildType: 'current'
+     artifactName: 'Resources'
+     targetPath: '$(Pipeline.Workspace)/Resources'
+ - task: AzureResourceManagerTemplateDeployment@3
+   inputs:
+     deploymentScope: 'Resource Group'
+     azureResourceManagerConnection: 'TrainingAccountSP'
+     subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
+     action: 'Create Or Update Resource Group'
+     resourceGroupName: 'aca-devops'
+     location: 'West Europe'
+     templateLocation: 'Linked artifact'
+     csmFile: '$(Pipeline.Workspace)/Resources/LogicApp.json'
+     csmParametersFile: '$(Pipeline.Workspace)/Resources/LogicApp.parameters.json'
+     deploymentMode: 'Incremental'
