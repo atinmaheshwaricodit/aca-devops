@@ -1,0 +1,17 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- lab-xxx
+
+pool:
+  vmImage: windows-latest
+
+steps:
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/MyLogicApp/Templates'
+    Contents: '*.json'
+    TargetFolder: '$(Build.Artifactstagingdirectory)/Templates'
