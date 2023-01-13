@@ -33,7 +33,7 @@
       "type": "String"
     },
     "Release.RequestedFor": {
-      "defaultValue": "hco",
+      "defaultValue": "xxx",
       "type": "String"
     },
     "Release.SourceCodeBranch": {
