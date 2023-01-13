@@ -4,10 +4,13 @@
 # https://aka.ms/yaml
 
 trigger:
-- lab-devops
+- none
 
 pool:
   vmImage: windows-latest
+
+variables:
+    DevopsResourceGroup: devops-training-xxx
 
 steps:
 - task: CopyFiles@2
@@ -36,7 +39,7 @@ steps:
     azureResourceManagerConnection: 'TrainingAccountSP'
     subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
     action: 'Create Or Update Resource Group'
-    resourceGroupName: 'paas-training-instructor'
+    resourceGroupName: '$(DevopsResourceGroup)'
     location: 'West Europe'
     templateLocation: 'Linked artifact'
     csmFile: '$(Pipeline.Workspace)/Resources/logicapp.json'
