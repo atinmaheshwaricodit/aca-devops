@@ -1,10 +1,10 @@
 variables:
   - name: Your.Initials
-    value: jdp
+    value: xxx
   - name: Resource.Prefix
     value: $(App.Environment.Code)-$(Region.ShortName)-$(Your.Initials)
   - name: Azure.ResourceGroup.Name
-    value: az-learning-$(Your.Initials)
+    value: devops-training-$(Your.Initials)
   - name: Api.Name
     value: $(Resource.Prefix)-app
   - name: Api.DotnetVersion.Infra
