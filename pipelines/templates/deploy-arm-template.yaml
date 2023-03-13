@@ -2,7 +2,7 @@ parameters:
   azureResourceManagerConnection: ''
   subscriptionId: ''
   resourceGroupName: ''
-  artifactFolder: '$(Pipeline.Workspace)/package_build/artifact'
+  artifactFolder: '$(Pipeline.Workspace)/package_build/artifact'  
   location: ''
   loggingLevel: ''
 
