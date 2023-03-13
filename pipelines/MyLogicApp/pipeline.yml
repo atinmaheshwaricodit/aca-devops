@@ -36,7 +36,7 @@ steps:
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Resource Group'
-    azureResourceManagerConnection: 'DevOpsLabsHCO'
+    azureResourceManagerConnection: 'DevOpsLabsHCO' 
     subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
     action: 'Create Or Update Resource Group'
     resourceGroupName: '$(DevopsResourceGroup)'
