@@ -9,7 +9,7 @@ resources:
     # Name of the pipeline resource inside this workflow. Used to reference the pipeline resources later on (e.g. download artifacts).
   - pipeline: package_build
     # Name of the pipeline in Azure Pipelines
-    source: 'DevOps Skeleton Pipelines - Package' 
+    source: 'HCO-DevOpsLab-CI' 
     trigger: true
 
 parameters:
@@ -44,16 +44,16 @@ stages:
           Write-Host "##vso[build.updatebuildnumber]$(Pipeline.Version)"
           Write-Host "Pipeline version is '$(Pipeline.Version)'"
         displayName: 'Change pipeline version $(Pipeline.Version)'
-- stage: deploy_acceptance
-  displayName: 'Deploy to Acceptance'
+- stage: deploy_dev
+  displayName: 'Deploy to Dev'
   dependsOn: preparation
   variables:
-    - template: ./variables/environments/environment-acc.yaml
-    - template: ./variables/apps/app-acc.yaml
+    - template: ./variables/environments/environment-dev.yaml
+    - template: ./variables/apps/app-dev.yaml
   jobs:
-  - deployment: deploy_to_acc
-    displayName: 'Deploy to ACC'
-    environment: DevOps Skeleton (Acceptance)
+  - deployment: deploy_to_dev
+    displayName: 'Deploy to DEV'
+    environment: DEV
     strategy:
       runOnce:
         deploy:
@@ -69,27 +69,27 @@ stages:
               location: $(Azure.ResourceGroup.Location)
               loggingLevel: ${{ parameters.loggingLevel }}
 
-- stage: deploy_production
-  displayName: 'Deploy to Production'
-  dependsOn: deploy_acceptance
-  variables:
-    - template: ./variables/environments/environment-prd.yaml
-    - template: ./variables/apps/app-prd.yaml
-  jobs:
-  - deployment: deploy_to_prd
-    displayName: 'Deploy to PRD'
-    environment: DevOps Skeleton (Production)
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - download: 'package_build'
-            artifact: 'artifact'
-            displayName: Download Artifact
-          - template: ./templates/deploy-arm-template.yaml
-            parameters:
-              azureResourceManagerConnection: $(Azure.ServiceConnection.Name)
-              subscriptionId: $(Azure.Subscription.Id)
-              resourceGroupName: $(Azure.ResourceGroup.Name)
-              location: $(Azure.ResourceGroup.Location)
-              loggingLevel: ${{ parameters.loggingLevel }}
+#- stage: deploy_production
+#  displayName: 'Deploy to Production'
+#  dependsOn: deploy_acceptance
+#  variables:
+#    - template: ./variables/environments/environment-prd.yaml
+#    - template: ./variables/apps/app-prd.yaml
+#  jobs:
+#  - deployment: deploy_to_prd
+#    displayName: 'Deploy to PRD'
+#    environment: DevOps Skeleton (Production)
+#    strategy:
+#      runOnce:
+#        deploy:
+#          steps:
+#          - download: 'package_build'
+#            artifact: 'artifact'
+#            displayName: Download Artifact
+#          - template: ./templates/deploy-arm-template.yaml
+#            parameters:
+#              azureResourceManagerConnection: $(Azure.ServiceConnection.Name)
+#              subscriptionId: $(Azure.Subscription.Id)
+#              resourceGroupName: $(Azure.ResourceGroup.Name)
+#              location: $(Azure.ResourceGroup.Location)
+#              loggingLevel: ${{ parameters.loggingLevel }}

@@ -2,7 +2,7 @@ parameters:
   azureResourceManagerConnection: ''
   subscriptionId: ''
   resourceGroupName: ''
-  artifactFolder: '$(Pipeline.Workspace)/package_build/artifact'  
+  artifactFolder: '$(Pipeline.Workspace)/package_build'  
   location: ''
   loggingLevel: ''
 
@@ -53,8 +53,8 @@ steps:
     resourceGroupName: '${{parameters.resourceGroupName}}'
     location: '${{parameters.location}}'
     templateLocation: 'Linked artifact'
-    csmFile: '${{parameters.artifactFolder}}/arm/armtemplate.json'
-    csmParametersFile: '${{parameters.artifactFolder}}/arm/armtemplate.parameters.json'
+    csmFile: '${{parameters.artifactFolder}}/arm/azure-infrastructure.json'
+    csmParametersFile: '${{parameters.artifactFolder}}/arm/azure-infrastructure.parameters.json'
     deploymentMode: 'Incremental'
     deploymentOutputs: 'ArmOutputs'
   
