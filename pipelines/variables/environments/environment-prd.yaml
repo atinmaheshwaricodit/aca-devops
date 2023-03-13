@@ -1,0 +1,5 @@
+variables:
+  - name: App.Environment.Code
+    value: prd
+  - name: Environment.Name
+    value: Production

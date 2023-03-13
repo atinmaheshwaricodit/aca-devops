@@ -1,6 +1,6 @@
 variables:
   - name: Azure.ServiceConnection.Name
-    value: 'TrainingAccountSP'
+    value: 'DevOpsLabHCO'
   - name: Region.ShortName
     value: we
   - name: Azure.ResourceGroup.Location

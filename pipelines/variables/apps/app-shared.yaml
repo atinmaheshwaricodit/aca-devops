@@ -1,6 +1,6 @@
 variables:
   - name: Your.Initials
-    value: xxx
+    value: hco
   - name: Resource.Prefix
     value: $(App.Environment.Code)-$(Region.ShortName)-$(Your.Initials)
   - name: Azure.ResourceGroup.Name
