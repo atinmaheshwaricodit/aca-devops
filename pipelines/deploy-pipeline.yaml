@@ -69,7 +69,7 @@ stages:
               location: $(Azure.ResourceGroup.Location)
               loggingLevel: ${{ parameters.loggingLevel }}          
           - download: 'package_build'
-            artifact: 'arm'
+            artifact: 'app'
             displayName: Download Artifact
           # Deploy web app
           - template: ./templates/deploy-web-app.yaml
