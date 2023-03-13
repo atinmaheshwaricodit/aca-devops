@@ -100,7 +100,7 @@ stages:
         SourceFolder: deploy
         Contents: |
           azure-infrastructure.json
-          azure-infrasturcture.parameters.json
+          azure-infrastructure.parameters.json
         TargetFolder: '$(Build.ArtifactStagingDirectory)/publish_output/arm'
     - task: PublishPipelineArtifact@1
       displayName: 'Publish artifact'
