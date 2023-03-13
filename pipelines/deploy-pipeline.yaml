@@ -59,7 +59,7 @@ stages:
         deploy:
           steps:
           - download: 'package_build'
-            artifact: 'artifact'
+            artifact: 'arm'
             displayName: Download Artifact
           - template: ./templates/deploy-arm-template.yaml
             parameters:
@@ -67,8 +67,18 @@ stages:
               subscriptionId: $(Azure.Subscription.Id)
               resourceGroupName: $(Azure.ResourceGroup.Name)
               location: $(Azure.ResourceGroup.Location)
+              loggingLevel: ${{ parameters.loggingLevel }}          
+          - download: 'package_build'
+            artifact: 'arm'
+            displayName: Download Artifact
+          # Deploy web app
+          - template: ./templates/deploy-web-app.yaml
+            parameters:
+              azureResourceManagerConnection: $(Azure.ServiceConnection.Name)
+              subscriptionId: $(Azure.Subscription.Id)
+              resourceGroupName: $(Azure.ResourceGroup.Name)
+              location: $(Azure.ResourceGroup.Location)
               loggingLevel: ${{ parameters.loggingLevel }}
-
 #- stage: deploy_production
 #  displayName: 'Deploy to Production'
 #  dependsOn: deploy_acceptance
