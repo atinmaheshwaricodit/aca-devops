@@ -42,20 +42,18 @@ steps:
     Contents: '*.json'
     TargetFolder: '$(Build.ArtifactStagingDirectory)/Templates'
 
-- task: replacetokens@5
-  inputs:
-    rootDirectory: '$(Pipeline.Workspace)/Resources/'
-    targetFiles: '*.json'
-    encoding: 'auto'
-    tokenPattern: 'default'
-    writeBOM: true
-    actionOnMissing: 'warn'
-    keepToken: false
-    actionOnNoFiles: 'continue'
-    enableTransforms: false
-    enableRecursion: false
-    useLegacyPattern: false
-    enableTelemetry: true
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: Replace Tokens in ARM template
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/Resources/'
+    targetFiles: '*.json'
+    encoding: 'auto'
+    writeBOM: true
+    verbosity: 'detailed'
+    actionOnMissing: 'fail'
+    keepToken: false
+    tokenPrefix: '#{'
+    tokenSuffix: '}#'
 
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
