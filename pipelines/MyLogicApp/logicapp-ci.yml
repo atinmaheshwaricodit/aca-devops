@@ -8,11 +8,6 @@ trigger:
 pool:
   vmImage: windows-latest
 
-variables:
-    DevopsResourceGroup: az-learning-ama
-    logicapp.Name: ama-logicapp3-devops
-    logicapp.Location: West Europe
-
 steps:
 - task: CopyFiles@2
   inputs:

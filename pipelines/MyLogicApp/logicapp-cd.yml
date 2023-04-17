@@ -13,10 +13,16 @@ resources:
          - lab-ama
 
 variables:
-- name: Pipeline.Version
-  value: $(Artifact.Version)-$(Build.BuildNumber) 
-- name: Artifact.Version
-  value: $(resources.pipeline.logicappci.runName)
+  - name: DevopsResourceGroup
+    value: 'az-learning-ama'
+  - name: logicapp.Name
+    value: 'ama-logicapp3-devops'
+  - name: logicapp.Location
+    value: 'West Europe'
+  - name: Pipeline.Version
+    value: $(Artifact.Version)-$(Build.BuildNumber)
+  - name: Artifact.Version
+    value: $(resources.pipeline.logicappci.runName)
 
 pool:
   vmImage: 'ubuntu-latest'
