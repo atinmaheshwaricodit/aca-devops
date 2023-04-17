@@ -3,10 +3,10 @@ pool:
   vmImage: "windows-latest"
 
 variables:
-  name: Pipeline.Version
-  value: $(Artifact.Version)-$(Build.BuildNumber)
-  name: Artifact.Version
-  value: $(resources.pipeline.package_build.runName)
+-name: Pipeline.Version
+value: $(Artifact.Version)-$(Build.BuildNumber)
+-name: Artifact.Version
+value: $(resources.pipeline.package_build.runName)
 
 stages: 
 - stage: preparation
