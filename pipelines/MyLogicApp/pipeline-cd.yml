@@ -1,0 +1,59 @@
+
+resources:
+  source: 'ama-logicapp-ci'
+  trigger: true
+
+pool:
+  vmImage: "windows-latest"
+
+
+stages: 
+- stage: preparation
+  displayName: 'Prepare deployment'
+  jobs:
+  - job: version
+    displayName: 'Determine version'
+    steps:
+    - powershell:
+        Write-Host "##vso[build.updatebuildnumber]$(Pipeline.Version)"
+        Write-Host "Pipeline version is '$(Pipeline.Version)'"
+- stage: deploy dev
+  displayName: 'Deploy to Development'
+  depends on: preparation
+  variables:
+    DevopsResourceGroup: az-learning-ama
+    logicapp.Name: ama-logicapp3-devops
+    logicapp.Location: West Europe
+    #- template: ./variables_dev.yaml
+  jobs:
+  - deployment: deploy_to_dev
+    displayName: 'Deploy to Dev'
+    environment: DEV
+    steps:
+    - download: 
+      artifact: 'Resources'
+      displayName: Download Artifact Resources
+    - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+      displayName: Replace Tokens in ARM template
+      inputs:
+        rootDirectory: '$(Pipeline.Workspace)/Resources/'
+        targetFiles: '*.json'
+        encoding: 'auto'
+        writeBOM: true
+        verbosity: 'detailed'
+        actionOnMissing: 'fail'
+        keepToken: false
+        tokenPrefix: '#{'
+        tokenSuffix: '}#'
+    - task: AzureResourceManagerTemplateDeployment@3
+      inputs:
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: 'TrainingAccountInvLab'
+        subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: '$(DevopsResourceGroup)'
+        location: '$(logicapp.Location)'
+        templateLocation: 'Linked artifact'
+        csmFile: '$(Pipeline.Workspace)/Resources/logicapp.json'
+        csmParametersFile: '$(Pipeline.Workspace)/Resources/logicapp.parameters.json'
+        deploymentMode: 'Incremental'
