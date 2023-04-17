@@ -11,6 +11,8 @@ pool:
 
 variables:
     DevopsResourceGroup: az-learning-tpe
+    logicapp.Name: tpe-logicapp2-devops
+    logicapp.Location: France Central
 
 steps:
 - task: CopyFiles@2
@@ -40,6 +42,21 @@ steps:
     Contents: '*.json'
     TargetFolder: '$(Build.ArtifactStagingDirectory)/Templates'
 
+- task: replacetokens@5
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/Resources/'
+    targetFiles: '*.json'
+    encoding: 'auto'
+    tokenPattern: 'default'
+    writeBOM: true
+    actionOnMissing: 'warn'
+    keepToken: false
+    actionOnNoFiles: 'continue'
+    enableTransforms: false
+    enableRecursion: false
+    useLegacyPattern: false
+    enableTelemetry: true
+
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Resource Group'
@@ -47,7 +64,7 @@ steps:
     subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
     action: 'Create Or Update Resource Group'
     resourceGroupName: '$(DevopsResourceGroup)'
-    location: 'France Central'
+    location: '$(logicapp.Location)'
     templateLocation: 'Linked artifact'
     csmFile: '$(Pipeline.Workspace)/Resources/logicapp.json'
     csmParametersFile: '$(Pipeline.Workspace)/Resources/logicapp.parameters.json'
