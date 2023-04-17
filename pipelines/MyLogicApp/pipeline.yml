@@ -10,7 +10,7 @@ pool:
   vmImage: windows-latest
 
 variables:
-    DevopsResourceGroup: devops-training-xxx
+    DevopsResourceGroup: az-learning-ama
 
 steps:
 - task: CopyFiles@2
@@ -18,6 +18,7 @@ steps:
     SourceFolder: 'src/MyLogicApp/Templates'
     Contents: '*.json'
     TargetFolder: '$(Build.ArtifactStagingDirectory)/Templates'
+
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)/Templates'
@@ -36,7 +37,7 @@ steps:
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Resource Group'
-    azureResourceManagerConnection: 'TrainingAccountSP'
+    azureResourceManagerConnection: 'TrainingAccountInvLab'
     subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
     action: 'Create Or Update Resource Group'
     resourceGroupName: '$(DevopsResourceGroup)'
