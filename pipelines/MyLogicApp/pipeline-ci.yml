@@ -1,0 +1,23 @@
+trigger:
+- lab-ama
+
+pool:
+  vmImage: windows-latest
+
+variables:
+    DevopsResourceGroup: az-learning-ama
+    logicapp.Name: ama-logicapp3-devops
+    logicapp.Location: West Europe
+
+steps:
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/MyLogicApp/Templates'
+    Contents: '*.json'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/Templates'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)/Templates'
+    artifact: 'Resources'
+    publishLocation: 'pipeline'
