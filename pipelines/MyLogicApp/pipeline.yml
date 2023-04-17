@@ -36,20 +36,18 @@ steps:
     targetPath: '$(Pipeline.Workspace)/Resources'
 # daarna tokens replacen in arm templates
 # dan worden ze gedeployed naar Azure:
-- task: replacetokens@5
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: Replace Tokens in ARM template
   inputs:
     rootDirectory: '$(Pipeline.Workspace)/Resources/'
     targetFiles: '*.json'
     encoding: 'auto'
-    tokenPattern: 'default'
     writeBOM: true
-    actionOnMissing: 'warn'
+    verbosity: 'detailed'
+    actionOnMissing: 'fail'
     keepToken: false
-    actionOnNoFiles: 'continue'
-    enableTransforms: false
-    enableRecursion: false
-    useLegacyPattern: false
-    enableTelemetry: true
+    tokenPrefix: '#{'
+    tokenSuffix: '}#'
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Resource Group'
