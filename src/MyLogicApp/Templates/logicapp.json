@@ -5,6 +5,9 @@
         "workflows_mylogicapp_lab_name": {
             "defaultValue": "mylogicapp-tpe",
             "type": "String"
+        },
+        "location": {
+            "type": "string"
         }
     },
     "variables": {},
@@ -13,7 +16,7 @@
             "type": "Microsoft.Logic/workflows",
             "apiVersion": "2017-07-01",
             "name": "[parameters('workflows_mylogicapp_lab_name')]",
-            "location": "westeurope",
+            "location": "[parameters('location')]",
             "properties": {
                 "state": "Enabled",
                 "definition": {

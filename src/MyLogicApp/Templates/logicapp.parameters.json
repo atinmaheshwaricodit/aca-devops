@@ -3,7 +3,10 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "workflows_mylogicapp_lab_name": {
-            "value": "tpe-logicapp-devops"
+            "value": "#{logicapp.Name}#"
+        },
+        "location": {
+            "value": "#{logicapp.Location}#"
         }
     }
 }
