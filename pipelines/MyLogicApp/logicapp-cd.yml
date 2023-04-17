@@ -51,6 +51,7 @@ stages:
           steps:
           - download: logicappci
             artifact: Resources
+            target: '$(Pipeline.Workspace)/'
           - task: qetza.replacetokens.replacetokens-task.replacetokens@3
             displayName: Replace Tokens in ARM template
             inputs:
