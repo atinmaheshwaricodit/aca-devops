@@ -2,8 +2,11 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "workflows_mylogicapp_lab_name": {
-            "value": "ama-logicapp-devops"
-        }
+      "workflows_mylogicapp_lab_name": {
+        "value": "#{logicapp.Name}#"
+      },
+      "location": {
+        "value": "#{logicapp.Location}#"
+      }
     }
 }
