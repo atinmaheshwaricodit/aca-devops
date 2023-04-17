@@ -11,6 +11,8 @@ pool:
 
 variables:
     DevopsResourceGroup: az-learning-ama
+    logicapp.Name: ama-logicapp2-devops
+    logicapp.Location: North Europe
 
 steps:
 - task: CopyFiles@2
@@ -34,6 +36,20 @@ steps:
     targetPath: '$(Pipeline.Workspace)/Resources'
 # daarna tokens replacen in arm templates
 # dan worden ze gedeployed naar Azure:
+- task: replacetokens@5
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/Resources/'
+    targetFiles: '*.json'
+    encoding: 'auto'
+    tokenPattern: 'default'
+    writeBOM: true
+    actionOnMissing: 'warn'
+    keepToken: false
+    actionOnNoFiles: 'continue'
+    enableTransforms: false
+    enableRecursion: false
+    useLegacyPattern: false
+    enableTelemetry: true
 - task: AzureResourceManagerTemplateDeployment@3
   inputs:
     deploymentScope: 'Resource Group'
@@ -41,7 +57,7 @@ steps:
     subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
     action: 'Create Or Update Resource Group'
     resourceGroupName: '$(DevopsResourceGroup)'
-    location: 'West Europe'
+    location: '$(logicapp.Location)'
     templateLocation: 'Linked artifact'
     csmFile: '$(Pipeline.Workspace)/Resources/logicapp.json'
     csmParametersFile: '$(Pipeline.Workspace)/Resources/logicapp.parameters.json'
