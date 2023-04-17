@@ -1,0 +1,71 @@
+
+name : ama-logicapp-cd
+trigger: none
+resources:
+  pipelines:
+    # Name of the pipeline resource inside this workflow. Used to reference the pipeline resources later on (e.g. download artifacts).
+  - pipeline: logicappci
+    # Name of the pipeline in Azure Pipelines
+    source: 'ama-logicapp-ci'
+    trigger: 
+     branches:
+       include:
+         - lab-ama
+
+variables:
+- name: Pipeline.Version
+  value: $(Artifact.Version)-$(Build.BuildNumber) 
+- name: Artifact.Version
+  value: $(resources.pipeline.logicappci.runName)
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages: 
+- stage: preparation
+  displayName: 'Prepare Deployment'
+  jobs:
+    - job: version
+      displayName: Determine Version
+      steps:
+      - powershell: |
+          Write-Host "##vso[build.updatebuildnumber]$(Pipeline.Version)"
+          Write-Host "Pipeline version is '$(Pipeline.Version)'"
+        displayName: 'Change pipeline version $(Pipeline.Version)'
+- stage: deploy_dev
+  displayName: 'Deploy to Development'
+  dependsOn: preparation
+  jobs:
+  - deployment: deploy_to_dev
+    displayName: 'Deploy to DEV'
+    environment: DEV
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: logicappci
+            artifact: Resources
+          - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+            displayName: Replace Tokens in ARM template
+            inputs:
+              rootDirectory: '$(Pipeline.Workspace)/Resources/'
+              targetFiles: '*.json'
+              encoding: 'auto'
+              writeBOM: true
+              verbosity: 'detailed'
+              actionOnMissing: 'fail'
+              keepToken: false
+              tokenPrefix: '#{'
+              tokenSuffix: '}#'
+          - task: AzureResourceManagerTemplateDeployment@3
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: 'TrainingAccountInvLab'
+              subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: '$(DevopsResourceGroup)'
+              location: '$(logicapp.Location)'
+              templateLocation: 'Linked artifact'
+              csmFile: '$(Pipeline.Workspace)/Resources/logicapp.json'
+              csmParametersFile: '$(Pipeline.Workspace)/Resources/logicapp.parameters.json'
+              deploymentMode: 'Incremental'
