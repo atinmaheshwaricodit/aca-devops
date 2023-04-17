@@ -1,8 +1,4 @@
 
-resources:
-  source: 'ama-logicapp-ci'
-  trigger: true
-
 pool:
   vmImage: "windows-latest"
 
@@ -19,7 +15,6 @@ stages:
         Write-Host "Pipeline version is '$(Pipeline.Version)'"
 - stage: deploy dev
   displayName: 'Deploy to Development'
-  depends on: preparation
   variables:
     DevopsResourceGroup: az-learning-ama
     logicapp.Name: ama-logicapp3-devops
@@ -29,10 +24,17 @@ stages:
   - deployment: deploy_to_dev
     displayName: 'Deploy to Dev'
     environment: DEV
+  - job: 
     steps:
-    - download: 
-      artifact: 'Resources'
-      displayName: Download Artifact Resources
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'specific'
+        project: '8acff882-9769-4ab6-8e1c-e40758b4cf7a'
+        definition: '1667'
+        specificBuildWithTriggering: true
+        buildVersionToDownload: 'latest'
+        artifactName: 'Resources'
+        targetPath: '$(Pipeline.Workspace)/Resources/'
     - task: qetza.replacetokens.replacetokens-task.replacetokens@3
       displayName: Replace Tokens in ARM template
       inputs:
