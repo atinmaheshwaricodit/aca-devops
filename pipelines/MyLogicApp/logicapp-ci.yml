@@ -1,0 +1,22 @@
+trigger:
+- lab-tpe
+
+pool:
+  vmImage: windows-latest
+
+variables:
+    DevopsResourceGroup: az-learning-tpe
+    logicapp.Name: tpe-logicapp3-devops
+    logicapp.Location: France Central
+
+steps:
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/MyLogicApp/Templates'
+    Contents: '*.json'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/Templates'
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)/Templates'
+    artifact: 'Resources'
+    publishLocation: 'pipeline'

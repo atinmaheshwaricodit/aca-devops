@@ -1,0 +1,34 @@
+trigger:
+- lab-tpe
+
+- task: DownloadPipelineArtifact@2
+  inputs:
+    buildType: 'current'
+    artifactName: 'Resources'
+    targetPath: '$(Pipeline.Workspace)/Resources'
+
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: Replace Tokens in ARM template
+  inputs:
+    rootDirectory: '$(Pipeline.Workspace)/Resources/'
+    targetFiles: '*.json'
+    encoding: 'auto'
+    writeBOM: true
+    verbosity: 'detailed'
+    actionOnMissing: 'fail'
+    keepToken: false
+    tokenPrefix: '#{'
+    tokenSuffix: '}#'
+
+- task: AzureResourceManagerTemplateDeployment@3
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: 'TrainingAccountInvLab'
+    subscriptionId: '533f6b10-3a70-4c5d-8962-8b51e839a13c'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: '$(DevopsResourceGroup)'
+    location: '$(logicapp.Location)'
+    templateLocation: 'Linked artifact'
+    csmFile: '$(Pipeline.Workspace)/Resources/logicapp.json'
+    csmParametersFile: '$(Pipeline.Workspace)/Resources/logicapp.parameters.json'
+    deploymentMode: 'Incremental'
