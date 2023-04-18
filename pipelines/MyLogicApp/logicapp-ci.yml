@@ -13,9 +13,9 @@ steps:
   inputs:
     SourceFolder: 'src/MyLogicApp/Templates'
     Contents: '*.json'  
-    TargetFolder: '$(Pipeline.Workspace)'
+    TargetFolder: '$(Pipeline.Workspace)/Resources'
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: '$(Pipeline.Workspace)'
+    targetPath: '$(Pipeline.Workspace)/Resources'
     artifact: 'Resources'
     publishLocation: 'pipeline'

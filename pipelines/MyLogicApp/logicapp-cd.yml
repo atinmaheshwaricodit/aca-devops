@@ -13,16 +13,16 @@ resources:
          - lab-ama
 
 variables:
-  - name: DevopsResourceGroup
-    value: 'az-learning-ama'
-  - name: logicapp.Name
-    value: 'ama-logicapp3-devops'
-  - name: logicapp.Location
-    value: 'West Europe'
   - name: Pipeline.Version
     value: $(Artifact.Version)-$(Build.BuildNumber)
   - name: Artifact.Version
     value: $(resources.pipeline.logicappci.runName)
+  - name: DevopsResourceGroup
+    value: az-learning-ama
+  - name: logicapp.Name
+    value: ama-logicapp3-devops
+  - name: logicapp.Location
+    value: West Europe
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -49,13 +49,17 @@ stages:
       runOnce:
         deploy:
           steps:
-          - download: logicappci
-            artifact: Resources
-            target: '$(Pipeline.Workspace)'
+          - download: 'logicappci'
+            artifact: 'Resources'
+            displayName: Download Artifact
+          - task: CmdLine@2
+            displayName: "[Debug] Output artifact structure"
+            inputs:
+              script: 'ls $(Pipeline.Workspace)/logicappci/Resources'
           - task: qetza.replacetokens.replacetokens-task.replacetokens@3
             displayName: Replace Tokens in ARM template
             inputs:
-              rootDirectory: '$(Pipeline.Workspace)/Resources/'
+              rootDirectory: '$(Pipeline.Workspace)/logicappci/Resources/'
               targetFiles: '*.json'
               encoding: 'auto'
               writeBOM: true
@@ -73,6 +77,6 @@ stages:
               resourceGroupName: '$(DevopsResourceGroup)'
               location: '$(logicapp.Location)'
               templateLocation: 'Linked artifact'
-              csmFile: '$(Pipeline.Workspace)/Resources/logicapp.json'
-              csmParametersFile: '$(Pipeline.Workspace)/Resources/logicapp.parameters.json'
+              csmFile: '$(Pipeline.Workspace)/logicappci/Resources/logicapp.json'
+              csmParametersFile: '$(Pipeline.Workspace)/logicappci/Resources/logicapp.parameters.json'
               deploymentMode: 'Incremental'
